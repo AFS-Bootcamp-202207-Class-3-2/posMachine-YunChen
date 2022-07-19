@@ -3,19 +3,20 @@ package pos.machine;
 import pos.entities.Receipt;
 import pos.entities.ReceiptItem;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 public class PosMachine {
     public String printReceipt(List<String> barcodes) {
-        String startLine = "***<store earning no money>Receipt***" + System.lineSeparator();
+
 
 
         List<ItemInfo> totItemInfos = convertToItemInfo(barcodes);
 
-        return null;
+
+        Receipt receipt = calculateReceipt(totItemInfos);
+
+
+        return renderReceipt(receipt);
     }
 
     /**
@@ -79,12 +80,16 @@ public class PosMachine {
                 record.put(currItemInfo.getBarcode(), 1);
             }
         }
+
         List<ReceiptItem> receiptItems = new ArrayList<>();
+        Set<String> checkIsExist = new HashSet<>();
 
-        for (Map.Entry<String, Integer> entry : record.entrySet()) {
-            String currBarcode = entry.getKey();
-            int quantity = entry.getValue();
 
+        for (int i = 0; i < itemsWithDetail.size(); i++) {
+            String currBarcode = itemsWithDetail.get(i).getBarcode();
+            if(checkIsExist.contains(currBarcode)) continue;
+            checkIsExist.add(currBarcode);
+            int quantity = record.get(currBarcode);
             ReceiptItem receiptItem = new ReceiptItem();
             receiptItem.setName(barcodeMapItem.get(currBarcode).getName());
             receiptItem.setQuantity(quantity);
@@ -93,6 +98,8 @@ public class PosMachine {
 
             receiptItems.add(receiptItem);
         }
+
+
 
         return receiptItems;
     }
@@ -116,7 +123,9 @@ public class PosMachine {
      * @return
      */
     public String renderReceipt(Receipt receipt) {
-        return null;
+
+
+        return spliceReceipt(receipt);
     }
 
 
@@ -126,7 +135,15 @@ public class PosMachine {
      * @return
      */
     public String splicItemsDetail(Receipt receipt) {
-        return null;
+        List<ReceiptItem> receiptItemDetail = receipt.getItemDetail();
+        StringBuilder stringBuilder = new StringBuilder();
+        for (int i = 0; i < receiptItemDetail.size(); i++) {
+            ReceiptItem receiptItem = receiptItemDetail.get(i);
+            String data = "Name: " + receiptItem.getName() + ", Quantity: " + receiptItem.getQuantity() + ", Unit price: " + receiptItem.getUnitPrice() + " (yuan), Subtotal: " + receiptItem.getSubTotal() + " (yuan)";
+            stringBuilder.append(data);
+            stringBuilder.append("\n");
+        }
+        return stringBuilder.toString();
     }
 
     /**
@@ -135,7 +152,14 @@ public class PosMachine {
      * @return
      */
     public String spliceReceipt(Receipt receipt) {
-        return null;
+        String startLine = "***<store earning no money>Receipt***" + "\n";
+        String itemsDetail = splicItemsDetail(receipt);
+
+
+        String separator = "----------------------\n";
+        String totalPrice = "Total: " + receipt.getTotalPrice() + " (yuan)" + "\n";
+        String endSeparator = "**********************";
+        return startLine + itemsDetail + separator + totalPrice + endSeparator;
     }
 
 }
