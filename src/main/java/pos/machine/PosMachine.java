@@ -4,12 +4,16 @@ import pos.entities.Receipt;
 import pos.entities.ReceiptItem;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 public class PosMachine {
     public String printReceipt(List<String> barcodes) {
         String startLine = "***<store earning no money>Receipt***" + System.lineSeparator();
 
+
+        List<ItemInfo> totItemInfos = convertToItemInfo(barcodes);
 
         return null;
     }
@@ -38,12 +42,20 @@ public class PosMachine {
 
 
     /**
-     * 将全部ItemInfo转换为收据
+     * 将全部ItemInfo转换为收据对象
      * @param itemsWithDetail
      * @return
      */
     public Receipt calculateReceipt(List<ItemInfo> itemsWithDetail) {
-        return null;
+
+        List<ReceiptItem> receiptItems = calculateReceiptItems(itemsWithDetail);
+        int totalPrice = calculateTotalPrice(receiptItems);
+
+        Receipt receipt = new Receipt();
+        receipt.setItemDetail(receiptItems);
+        receipt.setTotalPrice(totalPrice);
+
+        return receipt;
     }
 
     /**
@@ -52,7 +64,37 @@ public class PosMachine {
      * @return
      */
     public List<ReceiptItem> calculateReceiptItems(List<ItemInfo> itemsWithDetail) {
-        return null;
+        Map<String, Integer> record = new HashMap<>();
+        Map<String, ItemInfo> barcodeMapItem = new HashMap<>();
+        for (int i = 0; i < itemsWithDetail.size(); i++) {
+            ItemInfo currItemInfo = itemsWithDetail.get(i);
+            String itemBarcode = currItemInfo.getBarcode();
+            if (!barcodeMapItem.containsKey(itemBarcode)) {
+                barcodeMapItem.put(itemBarcode, currItemInfo);
+            }
+
+            if (record.containsKey(itemBarcode)) {
+                record.put(itemBarcode, record.get(itemBarcode) + 1);
+            } else {
+                record.put(currItemInfo.getBarcode(), 1);
+            }
+        }
+        List<ReceiptItem> receiptItems = new ArrayList<>();
+
+        for (Map.Entry<String, Integer> entry : record.entrySet()) {
+            String currBarcode = entry.getKey();
+            int quantity = entry.getValue();
+
+            ReceiptItem receiptItem = new ReceiptItem();
+            receiptItem.setName(barcodeMapItem.get(currBarcode).getName());
+            receiptItem.setQuantity(quantity);
+            receiptItem.setUnitPrice(barcodeMapItem.get(currBarcode).getPrice());
+            receiptItem.setSubTotal(receiptItem.getUnitPrice() * quantity);
+
+            receiptItems.add(receiptItem);
+        }
+
+        return receiptItems;
     }
 
     /**
@@ -61,7 +103,11 @@ public class PosMachine {
      * @return
      */
     public int calculateTotalPrice(List<ReceiptItem> receiptItems) {
-        return 0;
+        int totalPrice = 0;
+        for (int i = 0; i < receiptItems.size(); i++) {
+            totalPrice += receiptItems.get(i).getSubTotal();
+        }
+        return totalPrice;
     }
 
     /**
