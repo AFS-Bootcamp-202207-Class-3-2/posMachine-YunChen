@@ -3,6 +3,7 @@ package pos.machine;
 import pos.entities.Receipt;
 import pos.entities.ReceiptItem;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class PosMachine {
@@ -14,12 +15,25 @@ public class PosMachine {
     }
 
     /**
+     * load数据
      * 将商品条形码都转换为ItemInfo
      * @param barcodes
      * @return
      */
     public List<ItemInfo> convertToItemInfo(List<String> barcodes) {
-        return null;
+        List<ItemInfo> itemInfos = ItemDataLoader.loadAllItemInfos();
+
+        List<ItemInfo> reItemInfos = new ArrayList<>();
+        for (int i = 0; i < barcodes.size(); i++) {
+            String currBarcode = barcodes.get(i);
+            for (int j = 0; j < itemInfos.size(); j++) {
+                if (currBarcode!=null && itemInfos.get(j).getBarcode().equals(currBarcode)) {
+                    ItemInfo data = itemInfos.get(j);
+                    reItemInfos.add(new ItemInfo(data.getBarcode(), data.getName(), data.getPrice()));
+                }
+            }
+        }
+        return reItemInfos;
     }
 
 
